@@ -37,12 +37,31 @@ def redirect_url(default='/'):
 ##################
 @app.route('/')
 def index():
-    return render_template('home.html')
+    items = db.query(Items).all()
+    return render_template('home.html',
+                            items=items)
 
 
-@app.route('/add')
+@app.route('/add', methods=['GET', 'POST'])
 def addItem():
-    return render_template('addItem.html')
+    if request.method == 'GET':
+        return render_template('addItem.html')
+    elif request.method == 'POST':
+        key = request.form.get('key')
+        value = request.form.get('value')
+
+        if key is not None and key != '':
+            item = Items(key=key)
+            if value is not None and value != '':
+                item.value = value
+        else:
+            flash('You need to provide a proper Key/Value pair')
+            return redirect(url_for('add'))
+
+        db.add(item)
+        db.commit()
+        flash('Item Added!')
+        return redirect(url_for('index'))
 
 
 @app.route('/edit')

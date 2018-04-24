@@ -53,8 +53,6 @@ class Items(Base):
     key = Column(String(30), index=True)
     value = Column(String(250))
     created_date = Column(DateTime(timezone=True), server_default=func.now())
-    author = relationship(Users)
-    author_id = Column(Integer, ForeignKey('user.id'))
 
     @property
     def serialize(self):
