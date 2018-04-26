@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row text-center">
+  <h3>Delete Item</h3>
+</div>
+
+<div class='row text-center'>
+    <form action='/delete/{{item.key}}' method='post' autocomplete='off'>
+      <p>Are you sure you want to delete the Key/Value pair?</p>
+      <p><strong>Key:</strong></p>
+      <p>{{item.key}}</p>
+      <p><strong>Value:</strong></p>
+      <p>{{item.value}}</p>
+      <button type='submit' class='btn btn-primary btn-danger'>Delete</button>
+    </form>
+    <br>
+    <a href='/' class='btn btn-primary'>Cancel</a>
+</div>
+
+{% endblock %}

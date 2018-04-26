@@ -76,14 +76,14 @@ def signup():
         # Check if user is already in database
         user = db.query(Users).filter_by(username=username).first()
         if user:
-            flash('This user is already registered, please login to continue')
+            flash('The user "%s" is already registered, please login to continue' % user.username)
             return render_template('signup.html')
         else:
             user = Users(username=username)
             user.hash_password(password)
             db.add(user)
             db.commit()
-            flash('User has been created, login to continue')
+            flash('User %s has been created, please login to continue' % user.username)
             return redirect(url_for('index'))
     else:
         return redirect(url_for('index'))
@@ -102,7 +102,7 @@ def login():
             user = db.query(Users).filter_by(username=username).first()
             login_session['username'] = user.username
             login_session['user_id'] = user.id
-            flash("You have been logged in as: %s" % user.username)
+            flash("Welcome, %s" % user.username)
             g.user = user
             return redirect(url_for('index'))
         else:
@@ -152,6 +152,13 @@ def addItem():
         if ('username' in login_session):
             key = request.form.get('key')
             value = request.form.get('value')
+
+            item = db.query(Items).filter_by(key=key).first()
+
+            # Make sure key is unique/not already added
+            if item:
+                flash('"%s" has already been added' % item.key)
+                return redirect(url_for('addItem'))
 
             if key is not None and key != '':
                 item = Items(key=key)
@@ -215,6 +222,38 @@ def editItem(item_key):
         else:
             flash('Please login to edit key/value pairs')
             return redirect(url_for('login'))
+    else:
+        return redirect(url_for('index'))
+
+
+@app.route('/delete/<item_key>', methods=['GET', 'POST'])
+def deleteItem(item_key):
+    if request.method == 'GET':
+        if ('username' in login_session):
+            # find key/value pair that we want to edit
+            item = db.query(Items).filter_by(key=item_key).first()
+
+            # Make sure user is deleting only their key/value pair
+            if (item.author.username == login_session['username']):
+                return render_template('deleteItem.html',
+                                        item=item,
+                                        login_session=login_session)
+        else:
+            flash('Please login to delete key/value pairs')
+            return redirect(url_for('login'))
+    if request.method=='POST':
+        item = db.query(Items).filter_by(key=item_key).first()
+
+        # Make sure the right user is requesting the delete
+        if login_session['username'] != item.author.username:
+            flash('You do not have the permission to delete that')
+            return redirect(url_for('index'))
+
+        # Delete item and commit changes
+        db.delete(item)
+        db.commit()
+        flash('Key/Value pair deleted')
+        return redirect(url_for('index'))
     else:
         return redirect(url_for('index'))
 

@@ -21,7 +21,7 @@
             <td>{{ item.key }}</td>
             <td>{{ item.value }}</td>
             <td>{{ item.created_date}}</td>
-            <td><a href='/edit/{{item.key}}'>Edit</a> | <a href='#'>Delete</a></td>
+            <td><a href='/edit/{{item.key}}'>Edit</a> | <a href='/delete/{{item.key}}'>Delete</a></td>
           </tr>
         {% endfor %}
       {% endif %}
