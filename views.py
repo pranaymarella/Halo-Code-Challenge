@@ -32,51 +32,150 @@ def redirect_url(default='/'):
     return request.args.get('next') or request.referrer or url_for(default)
 
 
+#############################
+# User Login and Registration
+############################
+
+
+@auth.verify_password
+def verify_password(username, password):
+    user = db.query(Users).filter_by(username=username).first()
+    if not user or not user.verify_password(password):
+        return False
+    g.user = user
+    return True
+
+
+def createUser(login_session):
+    newUser = Users(username=login_session['username'])
+    db.add(newUser)
+    db.commit()
+    user = db.query(Users).filter_by(username=login_session['username']).first()
+    return user.id
+
+
+def getUserInfo(user_id):
+    user = db.query(Users).filter_by(id=user_id).first()
+    return user
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'GET':
+        return render_template('signup.html',
+                                login_session=login_session)
+    elif request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        verifyPass = request.form.get('verifyPassword')
+
+        if username is None or password is None or password != verifyPass:
+            flash('You must enter a valid username and password')
+            return render_template('signup.html')
+
+        # Check if user is already in database
+        user = db.query(Users).filter_by(username=username).first()
+        if user:
+            flash('This user is already registered, please login to continue')
+            return render_template('signup.html')
+        else:
+            user = Users(username=username)
+            user.hash_password(password)
+            db.add(user)
+            db.commit()
+            flash('User has been created, login to continue')
+            return redirect(url_for('index'))
+    else:
+        return redirect(url_for('index'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html',
+                                login_session=login_session)
+    elif request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if verify_password(username, password):
+            user = db.query(Users).filter_by(username=username).first()
+            login_session['username'] = user.username
+            login_session['user_id'] = user.id
+            flash("You have been logged in as: %s" % user.username)
+            g.user = user
+            return redirect(url_for('index'))
+        else:
+            flash('Wrong Username or Password')
+            return render_template('login.html')
+    else:
+        return redirect(url_for('index'))
+
+
+@app.route('/logout')
+def logout():
+    del login_session['username']
+    del login_session['user_id']
+    flash('You have been logged out')
+    return redirect(url_for('index'))
+
+
 ##################
 # VIEWS
 ##################
+
+
 @app.route('/')
 def index():
-    items = db.query(Items).all()
-    return render_template('home.html',
-                            items=items)
+    if ('username' in login_session):
+        # Only show items added by this user
+        items = db.query(Items).filter_by(author_id=login_session['user_id']).all()
+        return render_template('home.html', items=items, login_session=login_session)
+    else:
+        # Don't show items when user is not logged in
+        return render_template('home.html',
+                                login_session=login_session)
 
-
+# Method for Setting/Adding new Key Value Pairs
 @app.route('/add', methods=['GET', 'POST'])
 def addItem():
     if request.method == 'GET':
-        return render_template('addItem.html')
-    elif request.method == 'POST':
-        key = request.form.get('key')
-        value = request.form.get('value')
-
-        if key is not None and key != '':
-            item = Items(key=key)
-            if value is not None and value != '':
-                item.value = value
+        # Make sure only logged in users can access this page
+        if ('username' in login_session):
+            return render_template('addItem.html',
+                                    login_session=login_session)
         else:
-            flash('You need to provide a proper Key/Value pair')
-            return redirect(url_for('add'))
+            flash('Please login in order to add key/value pairs')
+            return redirect(url_for('login'))
+    elif request.method == 'POST':
+        # Make sure only logged in users are adding key/value pairs
+        if ('username' in login_session):
+            key = request.form.get('key')
+            value = request.form.get('value')
 
-        db.add(item)
-        db.commit()
-        flash('Item Added!')
+            if key is not None and key != '':
+                item = Items(key=key)
+                if value is not None and value != '':
+                    item.value = value
+                item.author = getUserInfo(login_session['user_id'])
+            else:
+                flash('You need to provide a proper Key/Value pair')
+                return redirect(url_for('addItem'))
+
+            db.add(item)
+            db.commit()
+            flash('Item Added!')
+            return redirect(url_for('index'))
+        else:
+            flash('Please login in order to add key/value pairs')
+            return redirect(url_for('login'))
+    else:
         return redirect(url_for('index'))
 
 
 @app.route('/edit')
 def editItem():
     return render_template('editItem.html')
-
-
-@app.route('/login')
-def login():
-    return render_template('login.html')
-
-
-@app.route('/signup')
-def signup():
-    return render_template('signup.html')
 
 
 if __name__ == '__main__':

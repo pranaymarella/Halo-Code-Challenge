@@ -6,4 +6,27 @@
   <h3>Signup</h3>
 </div>
 
+<div class='row text-center'>
+    <form action='/signup' method='post' autocomplete='off'>
+      <div class='form-group'>
+        <label for='userNameInput'>Username</label>
+        <input type='text' name='username' class='form-control' id='userNameInput' placeholder='Enter Username'/>
+      </div>
+      <div class='form-group'>
+        <label for='passwordInput'>Password</label>
+        <input type='password' name='password' class='form-control' id='passwordInput' placeholder='Enter Password'/>
+      </div>
+      <div class='form-group'>
+        <label for='confirmPasswordInput'>Verify Password</label>
+        <input type='password' name='verifyPassword' class='form-control' id='confrimPasswordInput' placeholder='Retype Password'/>
+      </div>
+      <button type='submit' class='btn btn-primary'>Signup</button>
+    </form>
+</div>
+<br>
+<div class='row text-center'>
+  <p>Already have an account?</p>
+  <a href='#'>Click here to Sign In</a>
+</div>
+
 {% endblock %}

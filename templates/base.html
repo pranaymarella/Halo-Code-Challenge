@@ -16,6 +16,29 @@
     <div class='row text-center'>
       <h1><a href='{{url_for("index")}}'>Halo Investing</a></h1>
     </div>
+    {% if login_session and login_session['username'] %}
+    <div class='row text-center'>
+        <h5><a href="{{url_for('logout')}}">Log out</a></h5>
+    </div>
+    {% else %}
+    <div class='row text-center'>
+        <h5><a href="{{url_for('login')}}">Log In</a>  |  <a href="{{url_for('signup')}}">Sign Up</a></h5>
+    </div>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    <div class='row text-center'>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for message in messages %}
+              <div class='alert alert-info alert-dismissible'>
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                <strong> {{ message }} </strong>
+              </div>
+              {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
 
     <!-- Application Content -->
     {% block content %}

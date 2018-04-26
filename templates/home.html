@@ -4,6 +4,28 @@
 
 <div class="row text-center">
   <h3>Items</h3>
+
+  <table class='table table-bordered'>
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if items %}
+        {% for item in items %}
+          <tr>
+            <td>{{ item.key }}</td>
+            <td>{{ item.value }}</td>
+            <td>{{ item.created_date}}</td>
+          </tr>
+        {% endfor %}
+      {% endif %}
+    </tbody>
+  </table>
+  <a href='{{url_for("addItem")}}' class='btn btn-info' role='button'>Add Key/Value Pair</a>
 </div>
 
 {% endblock %}

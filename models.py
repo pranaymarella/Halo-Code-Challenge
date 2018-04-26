@@ -52,6 +52,8 @@ class Items(Base):
     id = Column(Integer, primary_key=True)
     key = Column(String(30), index=True)
     value = Column(String(250))
+    author = relationship(Users)
+    author_id = Column(Integer, ForeignKey('user.id'))
     created_date = Column(DateTime(timezone=True), server_default=func.now())
 
     @property
