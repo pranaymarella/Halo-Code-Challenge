@@ -11,6 +11,7 @@
         <th>Key</th>
         <th>Value</th>
         <th>Created</th>
+        <th>Options</th>
       </tr>
     </thead>
     <tbody>
@@ -20,6 +21,7 @@
             <td>{{ item.key }}</td>
             <td>{{ item.value }}</td>
             <td>{{ item.created_date}}</td>
+            <td><a href='/edit/{{item.key}}'>Edit</a> | <a href='#'>Delete</a></td>
           </tr>
         {% endfor %}
       {% endif %}

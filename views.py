@@ -173,9 +173,50 @@ def addItem():
         return redirect(url_for('index'))
 
 
-@app.route('/edit')
-def editItem():
-    return render_template('editItem.html')
+@app.route('/edit/<item_key>', methods=['GET', 'POST'])
+def editItem(item_key):
+    if request.method == 'GET':
+        if ('username' in login_session):
+            # find key/value pair that we want to edit
+            item = db.query(Items).filter_by(key=item_key).first()
+
+            # Make sure user is editing only their key/value pair
+            if (item.author.username == login_session['username']):
+                return render_template('editItem.html',
+                                        item=item,
+                                        login_session=login_session)
+        else:
+            flash('Please login to edit key/value pairs')
+            return redirect(url_for('login'))
+    elif request.method == 'POST':
+        # Make sure only a logged in user is requesting edit
+        if ('username' in login_session):
+            key = request.form.get('key')
+            value = request.form.get('value')
+
+            item = db.query(Items).filter_by(key=item_key).first()
+
+            # Make sure only user that added this item can edit this
+            if (item.author_id != login_session['user_id']):
+                flash('You are not allowed to edit this')
+                return redirect(url_for('index'))
+
+            # Update the Key/Value pair
+            if key is not None and key != '':
+                item.key = key
+            if value is not None and value != '':
+                item.value = value
+
+            # Commit changes to the Database
+            db.add(item)
+            db.commit()
+            flash('Key/value pair has been updated')
+            return redirect(url_for('index'))
+        else:
+            flash('Please login to edit key/value pairs')
+            return redirect(url_for('login'))
+    else:
+        return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
